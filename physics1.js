@@ -1,4 +1,3 @@
-// Create a Clifford Algebra with 2,0,1 metric.
 Algebra(2,0,1,()=>{
   let point = (x, y) => 1e12 - x*1e02 + y*1e01;
   let dist_pl = (p, l) => (p^l).e012;
