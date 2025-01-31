@@ -48,7 +48,7 @@ Algebra(2,0,1,()=>{
     let j = -(1+r)*((P & comm(P, B1-B2)) | ~N) / ((P & comm(P, I1inv(N)-I2inv(N))) | ~N); // From https://bivector.net/PGAdyn.pdf page 46
 
     // Convert results back to body frame before storing to object
-    obj1.B = ~M1 >>> (B1 + j*I1inv(N)); // Final factor of `r` is totally un-physical but will hopefully help with energy blow up
+    obj1.B = ~M1 >>> (B1 + j*I1inv(N));
     if (obj2) {
       obj2.B = ~M2 >>> (B2 - j*I2inv(N));
     }
@@ -91,8 +91,6 @@ Algebra(2,0,1,()=>{
   ]
 
   let dt = 0.01;
-
-  let rebound_vis = [];
 
   document.body.appendChild(this.graph(()=>{
     for(let o=0; o<objects.length; o++) {
