@@ -1,14 +1,36 @@
 <html>
   <head>
   </head>
-  <body style="margin: 0px; padding: 0px;">
+  <body style="margin: 0px; padding: 0px; position: relative; z-index: 1;">
     <script src="./ganja.js"></script>
-    <script src="./physics1.js"> </script>
     <script>
-      disp=document.querySelector("svg")||document.querySelector("canvas"); 
-      if (disp && disp.value) { 
-        disp.style.width=disp.style.height="100%" 
+      function ganjaFullscreen() {
+        disp=document.querySelector("svg")||document.querySelector("canvas"); 
+        if (disp && disp.value) { 
+          disp.style.width=disp.style.height="100%" 
+        }
+      }
+      function setExample(path) {
+        document.getElementById('renderedExample').remove();
+        disp=document.querySelector('svg')||document.querySelector('canvas'); 
+        disp.remove()
+        
+        exampleScript = document.createElement("script");
+        exampleScript.src = path;
+        exampleScript.id = 'renderedExample';
+        exampleScript.onload = ganjaFullscreen
+
+        document.body.appendChild(exampleScript);
+      }
+      function onExampleChange() {
+        let selectBox = document.getElementById('exampleSelect');
+        setExample(selectBox.value);        
       }
     </script>
+    <select id="exampleSelect" style="position: absolute; top: 10px; left: 10px; z-index: 2;" onchange="onExampleChange()">
+      <option value="./examples/single_box.js">Single Box</option>
+      <option value="./examples/double_box.js">Double Box</option>
+    </select>
+    <script id="renderedExample" src="./examples/single_box.js" onload="ganjaFullscreen()"> </script>
   </body>
 </html>
