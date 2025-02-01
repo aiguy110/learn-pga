@@ -62,39 +62,17 @@ Algebra(2,0,1,()=>{
       let max2 = tripleMax(distTriples2);
       let min2 = tripleMin(distTriples2);
 
-      // if (max1[0] < min2[0]) {
-      //   // This could represent a collision. We assume edges are oriented "outward" from owning body, so
-      //   // violating point will always have negative signed dist and always be less than max signed
-      //   // dist of owning body (which should be 0.0)
-      //   if (bfsDist === null || bfsDist < min2[0]) {
-      //     [bfsDist, bfsPoint, bfsEdge] = min2;
-      //   }
-      // } else if (max2[0] < min1[0]) {
-      //   // Same reasoning as above...
-      //   if (bfsDist === null || bfsDist < min1[0]) {
-      //     [bfsDist, bfsPoint, bfsEdge] = min1;
-      //   }
-      // } else {
-      //   // We found a separating edge, so there is no collision here.
-      //   console.log('========')
-      //   console.log('max1 = ', max1[0]);
-      //   console.log('min2 = ', min2[0]);
-      //   console.log('--')
-      //   console.log('max2 = ', max2[0]);
-      //   console.log('min1 = ', min1[0]);
-      //   return [null, [0xaaffaa, edge, 0xaaaaff, max1[1], 0x5555aa, min1[1], 0xaaffaa, max2[1], 0x55aa55, min2[1]]];
-      // }
       if (max1[0] < min2[0] || max2[0] < min1[0]) {
-        return [null, [0xaaffaa, edge, 0xaaaaff, max1[1], 0x5555aa, min1[1], 0xaaffaa, max2[1], 0x55aa55, min2[1]]];
+        return [null, [0xaaffaa, edge]];
       } else if (max1[0] >= min2[0]) {
-        let d = max1[0] - min2[0];
+        let d = Math.abs(dist_pl(min2[1], edge));
         if (bfsDist === null || d < bfsDist) {
           bfsDist = d;
           bfsEdge = edge;
           bfsPoint = min2[1];
         }
       } else if (max2[0] >= min1[0]) {
-        let d = max2[0] - min1[0];
+        let d = Math.abs(dist_pl(min1[1], edge));
         if (bfsDist === null || d < bfsDist) {
           bfsDist = d;
           bfsEdge = edge;
