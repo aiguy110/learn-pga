@@ -34,7 +34,7 @@ Algebra(2,0,1,()=>{
     let points2 = obj2.points.map(p=>obj2.M >>> p);
     let edges = [
       ...wrapped_pairs(points1), 
-      ...wrapped_pairs(points2)
+      ...wrapped_pairs(points2),
     ].map(([a,b]) => a&b);
 
     let tripleMax = a => a.reduce((max, current) => max[0] < current[0] ? current : max);
@@ -64,21 +64,24 @@ Algebra(2,0,1,()=>{
 
       if (max1[0] < min2[0] || max2[0] < min1[0]) {
         return [null, [0xaaffaa, edge]];
-      } else if (max1[0] >= min2[0]) {
-        let d = Math.abs(dist_pl(min2[1], edge));
-        if (bfsDist === null || d < bfsDist) {
-          bfsDist = d;
-          bfsEdge = edge;
-          bfsPoint = min2[1];
+      } else {
+        if (max1[0] >= min2[0]) {
+          let d = Math.abs(dist_pl(min2[1], edge));
+          if (bfsDist === null || d < bfsDist) {
+            bfsDist = d;
+            bfsEdge = edge;
+            bfsPoint = min2[1];
+          }
         }
-      } else if (max2[0] >= min1[0]) {
-        let d = Math.abs(dist_pl(min1[1], edge));
-        if (bfsDist === null || d < bfsDist) {
-          bfsDist = d;
-          bfsEdge = edge;
-          bfsPoint = min1[1];
+        if (max2[0] >= min1[0]) {
+          let d = Math.abs(dist_pl(min1[1], edge));
+          if (bfsDist === null || d < bfsDist) {
+            bfsDist = d;
+            bfsEdge = edge;
+            bfsPoint = min1[1];
+          }
         }
-      }
+      }     
     }
 
     return [[bfsPoint, bfsEdge], [0xaa5555, bfsEdge]];
