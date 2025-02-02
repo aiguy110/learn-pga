@@ -28,63 +28,63 @@ Algebra(2,0,1,()=>{
   }
 
   let check_inter_object_collision = (obj1, obj2) => {
-    // If there is a collision, correct it and return a [point, normal] pair. Otherwise return null. 
+    // If there is a collision, correct it and return a [point, edge] pair. Otherwise return null. 
     // NOTE: Return type broken for troubleshooting
     let points1 = obj1.points.map(p=>obj1.M >>> p);
+    let edges1 = wrapped_pairs(points1).map(([a,b]) => a&b);
+
     let points2 = obj2.points.map(p=>obj2.M >>> p);
-    let edges = [
-      ...wrapped_pairs(points1), 
-      ...wrapped_pairs(points2),
-    ].map(([a,b]) => a&b);
+    let edges2 = wrapped_pairs(points2).map(([a,b]) => a&b);
 
-    let tripleMax = a => a.reduce((max, current) => max[0] < current[0] ? current : max);
-    let tripleMin = a => a.reduce((min, current) => min[0] > current[0] ? current : min);
+    let firstMax = a => a.reduce((max, current) => max[0] < current[0] ? current : max);
+    let firstMin = a => a.reduce((min, current) => min[0] > current[0] ? current : min);
 
-    /// "bfs" here is "best failed separator" not "Breadth First Search"
-    let bfsEdge = null, bfsPoint = null, bfsDist = null;
-    for (let e=0; e<edges.length; e++) {
-      let edge = edges[e];
-
-      let distTriples1 = []
-      for (let p=0; p<points1.length; p++) {
-        let P = points1[p];
-        distTriples1.push([dist_pl(P, edge), P, edge]);
-      }
-
-      let distTriples2 = []
-      for (let p=0; p<points2.length; p++) {
-        let P = points2[p];
-        distTriples2.push([dist_pl(P, edge), P, edge]);
-      }
-
-      let max1 = tripleMax(distTriples1);
-      let min1 = tripleMin(distTriples1);
-      let max2 = tripleMax(distTriples2);
-      let min2 = tripleMin(distTriples2);
-
-      if (max1[0] < min2[0] || max2[0] < min1[0]) {
-        return [null, [0xaaffaa, edge]];
-      } else {
-        if (max1[0] >= min2[0]) {
-          let d = Math.abs(dist_pl(min2[1], edge));
-          if (bfsDist === null || d < bfsDist) {
-            bfsDist = d;
-            bfsEdge = edge;
-            bfsPoint = min2[1];
+    let minPenPointAndEdge = (myEdges, otherPoints) => {
+      let minPen = Infinity, minPenPoint = null, minPenEdge = null;
+      for (let e=0; e<myEdges.length; e++) {
+        let edge = myEdges[e];
+        let edgeMinDist = Infinity;
+        let edgeMinPenPoint = null;
+        for (let p=0; p<otherPoints.length; p++) {
+          let P = otherPoints[p];
+          let d = dist_pl(P, edge);
+          if (d < edgeMinDist) {
+            edgeMinDist = d;
+            edgeMinPenPoint = P;
           }
         }
-        if (max2[0] >= min1[0]) {
-          let d = Math.abs(dist_pl(min1[1], edge));
-          if (bfsDist === null || d < bfsDist) {
-            bfsDist = d;
-            bfsEdge = edge;
-            bfsPoint = min1[1];
-          }
+        if (edgeMinDist > 0) {
+          // This is a separating edge
+          return null;
+        } else if (Math.abs(edgeMinDist) < minPen) {
+          // This edge is not separating but has a lower "penetration level" than the previous lowest
+          minPen = Math.abs(edgeMinDist);
+          minPenPoint = edgeMinPenPoint;
+          minPenEdge = edge;
         }
-      }     
+      }
+      return [minPen, minPenPoint, minPenEdge];
     }
 
-    return [[bfsPoint, bfsEdge], [0xaa5555, bfsEdge]];
+    let obj1MinPenPointAndEdge = minPenPointAndEdge(edges1, points2);
+    let obj2MinPenPointAndEdge = minPenPointAndEdge(edges2, points1);
+
+    if (obj1MinPenPointAndEdge === null || obj2MinPenPointAndEdge == null) {
+      return null;
+    }
+
+    let [minPen1, minPenPoint1, minPenEdge1] = obj1MinPenPointAndEdge;
+    let [minPen2, minPenPoint2, minPenEdge2] = obj2MinPenPointAndEdge;
+    if (minPen1 < minPen2) {
+      let n = (minPenEdge1 | 1e12) / 1e12;
+      obj1.M = (1 + 1e0*n*minPen1/4) * obj1.M;
+      obj2.M = (1 - 1e0*n*minPen1/4) * obj2.M;
+      return [minPenPoint1, n]
+    }
+    let n = (minPenEdge2 | 1e12) / 1e12;
+    obj1.M = (1 - 1e0 * n*minPen2/4) * obj1.M;
+    obj2.M = (1 + 1e0 * n*minPen2/4) * obj2.M;
+    return [minPenPoint2, -n]
   }
 
   let rebound = (P, n, obj1, obj2, r) => {
@@ -171,13 +171,13 @@ Algebra(2,0,1,()=>{
       } 
     }
 
-    let collisionEdges = [], satRenderRequest = [];
+    let collisionEdges = [];
     for(let o1=0; o1<objects.length-1; o1++) {
       for(let o2=o1+1; o2<objects.length; o2++) {
-        let [col, renderRequest] = check_inter_object_collision(objects[o1], objects[o2]);
-        satRenderRequest = renderRequest;
+        let col = check_inter_object_collision(objects[o1], objects[o2]);
         if (col) {
-          collisionEdges.push(col[1]);
+          // let [P, n] = col;
+          // rebound(P, -n, objects[o1], objects[o2], 0.9);
         }
       }
     }
@@ -188,12 +188,6 @@ Algebra(2,0,1,()=>{
 
       // Walls
       0xaa1111, ...walls,
-
-      // Collision Edges
-      0xffaaaa, ...collisionEdges,
-
-      // SAT render
-      ...satRenderRequest
     ];
   },{animate:true, lineWidth:3, labels:true, grid:true}));
 });
